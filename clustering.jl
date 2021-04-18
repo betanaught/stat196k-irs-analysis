@@ -113,5 +113,36 @@ sortperm(abs.(pca1.proj[:,1]), rev = true)
 show(terms[loaded_words][1:100])
 
 ### Cluster Analysis -----------------------------------------------------------
-subsample_transform = transform(pca1, subsample_transpose) # use this for clustering
+import Clustering
+
+ten_space = transform(pca1, subsample_transpose) # use this for clustering
 # Data subsample projected into 10-dimensional subspace
+nclusters = 3
+k3 = Clustering.kmeans(ten_space, nclusters)
+
+group1 = k3.assignments .== 1
+group2 = k3.assignments .== 2
+group3 = k3.assignments .== 3
+
+sum(group1)
+sum(group2)
+sum(group3)
+
+function close_centroids(knn_model)
+    groups = knn_model.assignments
+    k = length(unique(groups))
+    n = length(groups)
+    result = fill(0, k)
+    for ki in 1:k
+        cost_i = fill(Inf, n)
+        group_i = ki .== groups
+        cost_i[group_i] = knn_model.costs[group_i]
+        result[ki] = argmin(cost_i)
+    end
+    result
+end
+
+## Organizations closest to the centroids
+centroid_orgs = close_centroids(k3)
+irs990extract[centroid_orgs]
+
