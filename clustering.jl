@@ -72,15 +72,46 @@ end
 
 employee_tally = map(parse_employees, irs990extract)
 employee_top10k = sortperm(employee_tally, rev = true)[1:10_000]
-irs990extract[employee_top10k]
+
+# Largest organization by number of employees
+irs990extract[employee_top10k][1]
 irs990extract[employee_top10k][1]["mission"]
+irs990extract[employee_top10k][2]
+irs990extract[employee_top10k][3]
+irs990extract[employee_top10k][4]
+irs990extract[employee_top10k][5]
 
 subsample = termfreq[employee_top10k, 1:end]
 sort(subsample[1,:])
 
-subsample = termfreq[employee_top10k, 1:end]
-
 double_terms_ind = [length(subsample[:,i].nzval) >= 2 for i in 1:size(subsample, 2)]
 subsample = subsample[:, double_terms_ind]
 
-pca1 = fit(PCA, collect(transpose(subsample)), maxoutdim = 10)
+### Principal Components Analysis ----------------------------------------------
+subsample
+transpose(subsample)
+subsample_transpose = collect(transpose(subsample))
+pca1 = fit(PCA, subsample_transpose, maxoutdim = 10)
+# PCA(indim = 4859, outdim = 10, principalratio = 0.47382585032743996)
+# First 10 PCs account for ~ 50% of the variance
+pca2 = fit(PCA, subsample_transpose, maxoutdim = 20)
+# Next 10 PCs (20 total) explain only ~ 8% more variance
+pca3 = fit(PCA, subsample_transpose, maxoutdim = 3)
+
+# Principal Ratio
+principalratio(pca1)
+pca1.prinvars # Variance of each PC
+sum(pca1.prinvars)/pca1.tvar # Same as principalratio(pca1)
+
+# scatter(transpose(pca1.proj), legend = false) # Looks like this plots residuals
+scatter(pca1.prinvars, legend = false)
+
+# Words with largest loadings will have largest residuals (need abs)
+pca1.proj[:,1]
+abs.(pca1.proj[:,1])
+sortperm(abs.(pca1.proj[:,1]), rev = true)
+show(terms[loaded_words][1:100])
+
+### Cluster Analysis -----------------------------------------------------------
+subsample_transform = transform(pca1, subsample_transpose) # use this for clustering
+# Data subsample projected into 10-dimensional subspace
