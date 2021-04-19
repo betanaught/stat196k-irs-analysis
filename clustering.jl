@@ -41,7 +41,7 @@ boring_words = ["and", "to", "the", "of", "for", "in", "a", "is", "by", "o",
 top20_interesting_words = setdiff(interesting_words, boring_words)[1:20]
 show(top20_interesting_words)
 
-# 4. Number of records with "sacramento"
+# 4. Number of records with "sacramento" ---------------------------------------
 sum([occursin("sacramento", irs990extract[i]["mission"])
     for i in 1:length(irs990extract)])
 sum([occursin("Sacramento", irs990extract[i]["mission"])
@@ -50,7 +50,7 @@ sum([occursin("sacramento", lowercase(irs990extract[i]["mission"]))
     for i in 1:length(irs990extract)])
 
 
-# 5. One record containing "sacramento"
+# 5. One record containing "sacramento" ----------------------------------------
 sac_ind = [occursin("sacramento", lowercase(irs990extract[i]["mission"]))
     for i in 1:length(irs990extract)]
 sum(sac_ind)
@@ -60,13 +60,14 @@ sac_pub_lib_found["mission"]
 
 lowercase(join(terms[termfreq[1, 1:end].nzind], " "))
 
-# 6. Average number of words per document?
+# 6. Average number of words per document? -------------------------------------
 rand_irs_elements = rand(1:length(irs990extract), 30)
 [length(irs990extract[i]["mission"]) for i in rand_irs_elements] # 
 mean([length(irs990extract[i]["mission"]) for i in 1:length(irs990extract)])
 
-
-### Selecting a Subset ---------------------------------------------------------
+"""
+    Selecting a Subset ---------------------------------------------------------
+"""
 # 1. Pick 10,000 largest orgs using "employees"
 
 parse(Int, irs990extract[1]["employees"])
@@ -97,7 +98,9 @@ sort(subsample[1,:])
 double_terms_ind = [length(subsample[:,i].nzval) >= 2 for i in 1:size(subsample, 2)]
 subsample = subsample[:, double_terms_ind]
 
-### Principal Components Analysis ----------------------------------------------
+"""
+    Principal Component Analysis -----------------------------------------------
+"""
 subsample
 transpose(subsample)
 subsample_transpose = collect(transpose(subsample))
@@ -122,7 +125,9 @@ abs.(pca1.proj[:,1])
 sortperm(abs.(pca1.proj[:,1]), rev = true)
 show(terms[loaded_words][1:100])
 
-### Cluster Analysis -----------------------------------------------------------
+"""
+    Cluster Analysis -----------------------------------------------------------
+"""
 import Clustering
 
 ten_space = transform(pca1, subsample_transpose) # use this for clustering
