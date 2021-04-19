@@ -7,21 +7,22 @@ irs990extract = deserialize("irs990extract.jldata")
 terms = deserialize("terms.jldata")
 termfreq = deserialize("termfreq.jldata")
 
-#### Exploratory Data Analysis -------------------------------------------------
-# 1. Relative number of words per document
-## We want proportion of terms that show up in only 1 doc, i.e., 
-## terms that show up in exactly one document
+"""
+    Exploratory Data Analysis --------------------------------------------------
+"""
+# 1. Relative proportion of words eapearing in only 1 document -----------------
 single_terms_ind = [length(termfreq[:,i].nzval)==1 for i in 1:length(terms)]
 single_terms = terms[single_terms_ind]
 length(single_terms)/length(terms)
 
+# 2. Relative proportion of words eapearing in at least 5 documents ------------
 five_terms_ind = [length(termfreq[:,i].nzval)>=5 for i in 1:length(terms)]
 five_terms = terms[five_terms_ind]
 length(five_terms)/length(terms)
 
 StatsBase.counts(termfreq[1,:].nzind)
 
-# 3. 
+# 3. 20 most frequent words ----------------------------------------------------
 # Sort terms in termfreq by usage (total freq)
 sum(termfreq[2:end, 1].nzval)
 sum(termfreq[1:end, 2].nzval)
@@ -30,6 +31,15 @@ terms_top20 = sortperm([sum(termfreq[1:end, i].nzval) for i in 1:79653],
                         rev = true)[1:20]
 # What are they?
 show(terms[terms_top20])
+# Let's get rid of "and", "to", "for", etc.
+terms_top40 = sortperm([sum(termfreq[1:end, i].nzval) for i in 1:79653],
+                        rev = true)[1:40]
+interesting_words = terms[terms_top40]
+boring_words = ["and", "to", "the", "of", "for", "in", "a", "is", "by", "o",
+                "that", "our", "as"]
+
+top20_interesting_words = setdiff(interesting_words, boring_words)[1:20]
+show(top20_interesting_words)
 
 # 4. Number of records with "sacramento"
 sum([occursin("sacramento", irs990extract[i]["mission"])
@@ -103,7 +113,7 @@ principalratio(pca1)
 pca1.prinvars # Variance of each PC
 sum(pca1.prinvars)/pca1.tvar # Same as principalratio(pca1)
 
-# scatter(transpose(pca1.proj), legend = false) # Looks like this plots residuals
+# scatter(transpose(pca1.proj), legend = false) #Looks like this plots residuals
 scatter(pca1.prinvars, legend = false)
 
 # Words with largest loadings will have largest residuals (need abs)
