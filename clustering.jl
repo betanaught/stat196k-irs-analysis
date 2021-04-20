@@ -13,12 +13,12 @@ termfreq = deserialize("termfreq.jldata")
 # 1. Relative proportion of words eapearing in only 1 document -----------------
 single_terms_ind = [length(termfreq[:,i].nzval)==1 for i in 1:length(terms)]
 single_terms = terms[single_terms_ind]
-length(single_terms)/length(terms)
+100 * (length(single_terms)/length(terms))
 
 # 2. Relative proportion of words eapearing in at least 5 documents ------------
 five_terms_ind = [length(termfreq[:,i].nzval)>=5 for i in 1:length(terms)]
 five_terms = terms[five_terms_ind]
-length(five_terms)/length(terms)
+100 * (length(five_terms)/length(terms))
 
 StatsBase.counts(termfreq[1,:].nzind)
 
@@ -56,12 +56,13 @@ sac_ind = [occursin("sacramento", lowercase(irs990extract[i]["mission"]))
 sum(sac_ind)
 sac_pub_lib_found = irs990extract[sac_ind][1]
 sac_pub_lib_found["mission"]
+sac_pub_lib_found["name"]
 
 
 lowercase(join(terms[termfreq[1, 1:end].nzind], " "))
 
 # 6. Average number of words per document? -------------------------------------
-rand_irs_elements = rand(1:length(irs990extract), 30)
+rand_irs_elements = rand(1:length(irs990extract), 10)
 [length(irs990extract[i]["mission"]) for i in rand_irs_elements] # 
 mean([length(irs990extract[i]["mission"]) for i in 1:length(irs990extract)])
 
@@ -86,6 +87,7 @@ employee_top10k = sortperm(employee_tally, rev = true)[1:10_000]
 
 # Largest organization by number of employees
 irs990extract[employee_top10k][1]
+irs990extract[employee_top10k][1]["name"]
 irs990extract[employee_top10k][1]["mission"]
 irs990extract[employee_top10k][2]
 irs990extract[employee_top10k][3]
@@ -101,6 +103,8 @@ subsample = subsample[:, double_terms_ind]
 """
     Principal Component Analysis -----------------------------------------------
 """
+using Plots
+
 subsample
 transpose(subsample)
 subsample_transpose = collect(transpose(subsample))
@@ -108,7 +112,7 @@ pca1 = fit(PCA, subsample_transpose, maxoutdim = 10)
 # PCA(indim = 4859, outdim = 10, principalratio = 0.47382585032743996)
 # First 10 PCs account for ~ 50% of the variance
 pca2 = fit(PCA, subsample_transpose, maxoutdim = 20)
-# Next 10 PCs (20 total) explain only ~ 8% more variance
+# Next 10 PCs (20 total, 0.56) explain only ~ 8% more variance
 pca3 = fit(PCA, subsample_transpose, maxoutdim = 3)
 
 # Principal Ratio
@@ -119,10 +123,11 @@ sum(pca1.prinvars)/pca1.tvar # Same as principalratio(pca1)
 # scatter(transpose(pca1.proj), legend = false) #Looks like this plots residuals
 scatter(pca1.prinvars, legend = false)
 
-# Words with largest loadings will have largest residuals (need abs)
-pca1.proj[:,1]
+# Words with largest loadings from first component will have largest residuals
+# (need absolute value)
+pca1.proj[:,1] # word indicies (rows) of the first principal component
 abs.(pca1.proj[:,1])
-sortperm(abs.(pca1.proj[:,1]), rev = true)
+loaded_words = sortperm(abs.(pca1.proj[:,1]), rev = true)
 show(terms[loaded_words][1:100])
 
 """
@@ -139,9 +144,7 @@ group1 = k3.assignments .== 1
 group2 = k3.assignments .== 2
 group3 = k3.assignments .== 3
 
-sum(group1)
-sum(group2)
-sum(group3)
+[sum(group1), sum(group2), sum(group3)]
 
 function close_centroids(knn_model)
     groups = knn_model.assignments
@@ -159,5 +162,13 @@ end
 
 ## Organizations closest to the centroids
 centroid_orgs = close_centroids(k3)
-irs990extract[centroid_orgs]
+irs990extract[employee_top10k][centroid_orgs]
+[irs990extract[employee_top10k][i]["name"] for i in centroid_orgs]
 
+irs990extract[employee_top10k][group1]
+irs990extract[employee_top10k][group2]
+irs990extract[employee_top10k][group3]
+
+[irs990extract[employee_top10k][group1][i]["name"] for i in 1:sum(group1)]
+[irs990extract[employee_top10k][group2][i]["name"] for i in 1:sum(group2)]
+[irs990extract[employee_top10k][group3][i]["name"] for i in 1:sum(group3)]
