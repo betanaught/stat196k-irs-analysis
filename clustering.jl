@@ -128,7 +128,9 @@ scatter(pca1.prinvars, legend = false)
 pca1.proj[:,1] # word indicies (rows) of the first principal component
 abs.(pca1.proj[:,1])
 loaded_words = sortperm(abs.(pca1.proj[:,1]), rev = true)
-show(terms[loaded_words][1:100])
+
+subsample_terms = terms[double_terms_ind] # List of terms in subsample
+show(subsample_terms[loaded_words][1:100])
 
 """
     Cluster Analysis -----------------------------------------------------------
