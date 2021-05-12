@@ -331,10 +331,10 @@ sum(pca1.prinvars)/pca1.tvar # Same as principalratio(pca1)
 2. __Plot the variances of the first 10 principal components as a function of the principal component number. What do you observe?__
 ```julia
 using Plots
+plotly()
 scatter(pca1.prinvars, legend = false)
 ```
 
-![](figures/clustering_15_1.png)
 
 
 It looks like the first principal component contains much more variance than the others, which are all quite similar.
@@ -389,9 +389,9 @@ group3 = k3.assignments .== 3
 
 ```
 3-element Vector{Int64}:
+ 5379
   460
- 5375
- 4165
+ 4161
 ```
 
 
@@ -423,8 +423,8 @@ irs990extract[employee_top10k][centroid_orgs]
 
 ```
 3-element Vector{String}:
- "UPMC GROUP"
  "INCLUSA INC"
+ "UPMC GROUP"
  "JC BLAIR MEMORIAL HOSPITAL"
 ```
 
@@ -445,7 +445,7 @@ irs990extract[employee_top10k][group3]
 ```
 
 ```
-4165-element Vector{String}:
+4161-element Vector{String}:
  "CITY GARDEN WALDORF SCHOOL"
  "KAISER FOUNDATION HOSPITALS"
  "KAISER FOUNDATION HOSPITALS"
@@ -476,7 +476,7 @@ group3 contains many universities. It would make sense that group1 and group3 mi
 
 If I were to continue the analysis, I would want to first determine if my initial observations of the groups were accurate; I'd spend some more time investigating the types of organizations in the groups to see if I could extract the characteristics of the nonprofits in each group that set them apart. Then, I might try to perform some form of regression to see if I could genereate regression coefficients on these characteristics as predictor variables in an attempt to quantify their influence on what determines which group a nonprofit belongs to. For example, I might be able to use more of the quantitative data from the 990 forms (like revenue, number of volunteers, etc.) as predictor variables in a mulitnomial logistic regression and use the regression coefficients to describe the relative magnitudes of these variables' impacts.
 
-# ------------------------------------------------------------------------------
+
 # Julia Code
 ```julia
 using Serialization
@@ -488,9 +488,9 @@ using Debugger
 # terms = deserialize("terms.jldata")
 # termfreq = deserialize("termfreq.jldata")
 
-"""
+#=
     Exploratory Data Analysis --------------------------------------------------
-"""
+=#
 # 1. Relative proportion of words eapearing in only 1 document -----------------
 single_terms_ind = [length(termfreq[:,i].nzval)==1 for i in 1:length(terms)]
 single_terms = terms[single_terms_ind]
@@ -547,9 +547,9 @@ rand_irs_elements = rand(1:length(irs990extract), 10)
 [length(irs990extract[i]["mission"]) for i in rand_irs_elements] # 
 mean([length(irs990extract[i]["mission"]) for i in 1:length(irs990extract)])
 
-"""
+#=
     Selecting a Subset ---------------------------------------------------------
-"""
+=#
 # 1. Pick 10,000 largest orgs using "employees"
 
 parse(Int, irs990extract[1]["employees"])
@@ -581,10 +581,11 @@ sort(subsample[1,:])
 double_terms_ind = [length(subsample[:,i].nzval) >= 2 for i in 1:size(subsample, 2)]
 subsample = subsample[:, double_terms_ind]
 
-"""
+#=
     Principal Component Analysis -----------------------------------------------
-"""
+=#
 using Plots
+plotly()
 
 subsample
 transpose(subsample)
@@ -611,9 +612,9 @@ abs.(pca1.proj[:,1])
 loaded_words = sortperm(abs.(pca1.proj[:,1]), rev = true)
 show(terms[loaded_words][1:100])
 
-"""
+#=
     Cluster Analysis -----------------------------------------------------------
-"""
+=#
 import Clustering
 
 ten_space = transform(pca1, subsample_transpose) # use this for clustering
@@ -660,10 +661,26 @@ irs990extract[employee_top10k][group3]
  "servic", "is", "promot", "organ", "support", "none", "with", "see", "hous
 ", "through"]["provid", "educ", "communiti", "servic", "promot", "organ", "
 support", "none", "with", "see", "hous", "through", "member", "program", "d
-evelop", "care", "schedul", "mission", "health", "school"]Error: cannot doc
-ument the following expression:
-
-using Plots
+evelop", "care", "schedul", "mission", "health", "school"]["acquisit", "aac
+p", "acon", "136115884", "adorn", "administrativedisciplinari", "aafmaa", "
+acadia", "actionadministr", "5612101", "2008", "50034", "11510", "1857", "6
+16055994", "402", "afocr", "aark", "301", "1826", "acc", "affilia", "adopop
+t", "abili", "739", "administratorservic", "8702", "271", "actiiv", "561", 
+"374", "573", "administrationth", "adenoid", "1309", "7152357793", "academi
+chealthculturalsoci", "147", "academicvoc", "abim", "1930", "941375814", "6
+191", "aaoa", "5006003", "2615", "81974", "1425", "addictionvictim", "activ
+itiessupport", "adair", "15059", "26150", "135000", "aapt", "816", "189", "
+12300", "53", "352213", "aamva", "20012010", "52000", "5000", "1624", "abct
+", "5700", "8240", "562", "acord", "afraid", "504", "2017", "accur", "afgha
+n", "aamg", "adolesc", "adultchild", "affilpubl", "3142", "3150", "322", "2
+50000", "00", "330075", "2250", "aeolian", "230", "18146", "5080", "119", "
+affiliti", "15", "advocacyto", "19382017", "592", "696", "146", "adin", "20
+28"]5-element Vector{String}:
+ "ANDREWS UNIVERSITY"
+ "THE UNIVERSITY OF PUGET SOUND"
+ "ASSOCIATED BETH RIVKA SCHOOL FOR GIRLS"
+ "TRINITY CHRISTIAN ACADEMY"
+ "THE PAIDEIA SCHOOL INC"
 ```
 
 
