@@ -1,12 +1,11 @@
 ---
-author: "Brendan Wakefield"
-title: "H Assigment - PCA and Cluster Analysis"
-date: "19 April 2021"
+title: H Assigment - PCA and Cluster Analysis
+author: Brendan Wakefield
+date: 19 April 2021
 ---
 
-
 # Exploratory Data Analysis
-```julia
+```julia, echo = true, results = false
 using Serialization
 using Statistics, StatsBase, Random
 using MultivariateStats
@@ -17,45 +16,12 @@ terms = deserialize("../processed990/terms.jldata")
 termfreq = deserialize("../processed990/termfreq.jldata")
 ```
 
-260783×79653 SparseArrays.SparseMatrixCSC{Float64, Int64} with 5663744 stored entries:
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-
-
-
-
 1. __Relatively how many terms appear in exactly one document?__
 ```julia
 single_terms_ind = [length(termfreq[:,i].nzval)==1 for i in 1:length(terms)]
 single_terms = terms[single_terms_ind]
 100 * (length(single_terms)/length(terms))
 ```
-
-```
-61.292104503282985
-```
-
-
-
-
 About 60% of terms appear in only one IRS record.
 
 2. __Relatively how many terms appear at least 5 times?__
@@ -64,14 +30,6 @@ five_terms_ind = [length(termfreq[:,i].nzval)>=5 for i in 1:length(terms)]
 five_terms = terms[five_terms_ind]
 100 * (length(five_terms)/length(terms))
 ```
-
-```
-17.871266618959737
-```
-
-
-
-
 About 18% of terms appear in at lease 5 of the IRS records.
 
 3. __Show the 20 most frequent words. Words like “and”, “to”, “the” aren’t especially meaningful. Which is the first word that you feel may be meaningful for characterizing the nonprofit? Why?__
@@ -82,48 +40,10 @@ sort([sum(termfreq[1:end, i].nzval) for i in 1:79653], rev = true)
 terms_top20 = sortperm([sum(termfreq[1:end, i].nzval) for i in 1:79653],
                         rev = true)[1:20]
 ```
-
-```
-20-element Vector{Int64}:
-  6298
- 72116
- 71195
- 52172
- 58980
- 28470
- 35797
- 23768
-  3122
- 17116
- 65249
- 37655
- 58693
- 53295
- 69565
- 50814
- 77999
- 64701
- 34296
- 71748
-```
-
-
-
-
 The top 20 most frequent words are:
 ```julia
 show(terms[terms_top20])
 ```
-
-```
-["and", "to", "the", "of", "provid", "for", "in", "educ", "a", "communiti",
- "servic", "is", "promot", "organ", "support", "none", "with", "see", "hous
-", "through"]
-```
-
-
-
-
 The top 20 most frequent *meaningful* words (without "and", "to", "the", etc.) are:
 ```julia
 terms_top40 = sortperm([sum(termfreq[1:end, i].nzval) for i in 1:79653],
@@ -135,16 +55,6 @@ boring_words = ["and", "to", "the", "of", "for", "in", "a", "is", "by", "o",
 top20_interesting_words = setdiff(interesting_words, boring_words)[1:20]
 show(top20_interesting_words)
 ```
-
-```
-["provid", "educ", "communiti", "servic", "promot", "organ", "support", "no
-ne", "with", "see", "hous", "through", "member", "program", "develop", "car
-e", "schedul", "mission", "health", "school"]
-```
-
-
-
-
 We see many community-oriented and support words such as service, provide, promote, support, health, school. These words are consistent with many of the themes I would expect to find in the mission descriptions of non-profit organizations.
 
 4. __How many documents contain “sacramento”?__
@@ -152,14 +62,6 @@ We see many community-oriented and support words such as service, provide, promo
 sum([occursin("sacramento", lowercase(irs990extract[i]["mission"]))
     for i in 1:length(irs990extract)])
 ```
-
-```
-155
-```
-
-
-
-
 155 of the IRS nonprofit mission statements include the word "sacramento."
 
 5. __What’s one element in irs990extract where the mission contains “sacramento”?__
@@ -171,14 +73,6 @@ sac_pub_lib_found = irs990extract[sac_ind][1]
 sac_pub_lib_found["mission"]
 sac_pub_lib_found["name"]
 ```
-
-```
-"Sacramento Public Library Foundation"
-```
-
-
-
-
 The first mission statement to contain the word "sacramento" in my analysis is
 the "Sacramento Public Library Foundation"
 
@@ -187,14 +81,6 @@ I was curious to know the average number of words in all the mission description
 ```julia
 mean([length(irs990extract[i]["mission"]) for i in 1:length(irs990extract)])
 ```
-
-```
-189.55100217422148
-```
-
-
-
-
 On average, there are just under 200 words in each mission statement.
 
 # Selecting a Subset
@@ -217,31 +103,6 @@ subsample = termfreq[employee_top10k, 1:end]
 sort(subsample[1,:])
 ```
 
-```
-79653-element SparseArrays.SparseVector{Float64, Int64} with 25 stored entr
-ies:
-  [79629]  =  0.0333333
-  [79630]  =  0.0333333
-  [79631]  =  0.0333333
-  [79632]  =  0.0333333
-  [79633]  =  0.0333333
-  [79634]  =  0.0333333
-  [79635]  =  0.0333333
-           ⋮
-  [79646]  =  0.0333333
-  [79647]  =  0.0333333
-  [79648]  =  0.0333333
-  [79649]  =  0.0333333
-  [79650]  =  0.0666667
-  [79651]  =  0.0666667
-  [79652]  =  0.0666667
-  [79653]  =  0.1
-```
-
-
-
-
-
 2. __What’s the largest nonprofit based on your definition? Does it seem reasonable?__
 ```julia
 # Largest organization by number of employees
@@ -249,16 +110,6 @@ irs990extract[employee_top10k][1]
 irs990extract[employee_top10k][1]["name"]
 irs990extract[employee_top10k][1]["mission"]
 ```
-
-```
-"We provide services to disabled individuals. In addition, we provide food,
- shelter, love, clothing and social interaction for our clients; we accomod
-ate between 10 to 14 individuals of all ages."
-```
-
-
-
-
 After sorting the organizations by number of employees (and keeping the top 10,000), the largest organization I found was the "Worrell & Mitchel Group Home Inc." I looked this organization up online, and I can't tell if this completely makes sense. There is no website for the group home, only other sites containing reviews of it. It's hard for me to believe an organization with > 200,000 employees would *not* have a website. But, I looked at the top 10 organizations by employee number and found others that did make sense (such as the Kaiser Hospital Foundation (but I did notice they had two records for the same EIN, legal?).
 
 3. __Drop all the words that don't appear at least twice in the subset.__
@@ -266,35 +117,6 @@ After sorting the organizations by number of employees (and keeping the top 10,0
 double_terms_ind = [length(subsample[:,i].nzval) >= 2 for i in 1:size(subsample, 2)]
 subsample = subsample[:, double_terms_ind]
 ```
-
-```
-10000×4859 SparseArrays.SparseMatrixCSC{Float64, Int64} with 289136 stored 
-entries:
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-⡿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-```
-
-
-
-
 
 # Principal Component Analysis
 1. __Interpret the principal ratio. What does it mean?__
@@ -304,14 +126,6 @@ transpose(subsample)
 subsample_transpose = collect(transpose(subsample))
 pca1 = fit(PCA, subsample_transpose, maxoutdim = 10)
 ```
-
-```
-PCA(indim = 4859, outdim = 10, principalratio = 0.47382585032743996)
-```
-
-
-
-
 The principal ratio describes how much of the heterogeneity in the data is explained by the first 10 principal components. Here, we see that the first 10 PCs account for about 50% of the variance in the data. Fitting the model with 3 and 20 PCs resulted in ratios of 0.34 and 0.56, respectively, so it's nice to know that 10 dimensions accounts for much more variance than 3, but doubling the number of PCs does not inprove the quality of our model by much. It's very cool knowing we reduced the matrix from 80,000 dimensions and can still explain almost half the variance in the data.
 ```julia
 # Principal Ratio
@@ -320,23 +134,12 @@ pca1.prinvars # Variance of each PC
 sum(pca1.prinvars)/pca1.tvar # Same as principalratio(pca1)
 ```
 
-```
-0.47382585032743996
-```
-
-
-
-
-
 2. __Plot the variances of the first 10 principal components as a function of the principal component number. What do you observe?__
 ```julia
 using Plots
 plotly()
 scatter(pca1.prinvars, legend = false)
 ```
-
-
-
 It looks like the first principal component contains much more variance than the others, which are all quite similar.
 
 3. __Which words have the relatively largest loadings in the first principal component? (These the absolute values of the entries of projection().) Are these the kinds of words you expected? Explain.__
@@ -347,26 +150,6 @@ loaded_words = sortperm(abs.(pca1.proj[:,1]), rev = true)
 subsample_terms = terms[double_terms_ind] # List of terms in subsample
 show(subsample_terms[loaded_words][1:100])
 ```
-
-```
-["see", "o", "schedul", "and", "to", "the", "of", "provid", "servic", "in",
- "communiti", "health", "a", "care", "is", "for", "with", "our", "educ", "b
-y", "qualiti", "we", "through", "peopl", "live", "their", "mission", "disab
-l", "serv", "improv", "famili", "individu", "that", "support", "all", "life
-", "program", "as", "promot", "person", "children", "need", "it", "organ", 
-"healthcar", "develop", "member", "are", "student", "social", "statement", 
-"attach", "development", "an", "other", "medic", "center", "adult", "hospit
-", "excel", "opportun", "commit", "home", "heal", "be", "patient", "indepen
-d", "mental", "inc", "school", "work", "help", "compassion", "resid", "who"
-, "oper", "those", "train", "wellb", "employ", "empow", "enhanc", "dedic", 
-"1", "environ", "counti", "valu", "creat", "build", "high", "achiev", "well
-", "assist", "univers", "christian", "inspir", "learn", "art", "system", "c
-omprehens"]
-```
-
-
-
-
 These are not the types of words I would have initially expected to have the relatively largest loadings in the first principal componenet, because, naively, I would have thought that unique and particularly meaningful words would be the most "important." However, after reflecting more on what words would "load" a principal component, I think actually it would make sense for awkward and strange words to "load" the PC most (have the highest variance). I'm thinking of something similar to (if not the same as) "leverage points" in regression; these are often outliers that have large residuals that "pull" hardest on the regression model, and I think this might be what's happening here. That would explain why the loading points are a bit strange (and many are numbers).
 
 # Clustering
@@ -386,17 +169,6 @@ group3 = k3.assignments .== 3
 
 [sum(group1), sum(group2), sum(group3)]
 ```
-
-```
-3-element Vector{Int64}:
- 4165
-  460
- 5375
-```
-
-
-
-
 The three groups have 5375, 4165, and 460 organizations, respectively.
 
 2. __Which nonprofits are closest to the centroids? Feel free to use the function below.__
@@ -420,17 +192,6 @@ centroid_orgs = close_centroids(k3)
 irs990extract[employee_top10k][centroid_orgs]
 [irs990extract[employee_top10k][i]["name"] for i in centroid_orgs]
 ```
-
-```
-3-element Vector{String}:
- "JC BLAIR MEMORIAL HOSPITAL"
- "UPMC GROUP"
- "INCLUSA INC"
-```
-
-
-
-
 The three nonprofits closest to the cluster centroids Inclusa Inc, JC Blair Memorial Hospital, and UPMC Group.
 
 3. __k means should find a group of mission statements that are very similar. What happened? Is it reasonable? If we were to continue this analysis, what would you do next?__
@@ -443,34 +204,6 @@ irs990extract[employee_top10k][group3]
 [irs990extract[employee_top10k][group2][i]["name"] for i in 1:sum(group2)]
 [irs990extract[employee_top10k][group3][i]["name"] for i in 1:sum(group3)]
 ```
-
-```
-5375-element Vector{String}:
- "WorrellMitchell Group HomeInc"
- "Creative Enrichment Centers"
- "Banner Health"
- "DIGNITY HEALTH"
- "MAYO CLINIC GROUP RETURN"
- "NEW YORK UNIVERSITY"
- "THE BOARD OF TRUSTEES OF THE LELAND STANFORD"
- "President and Fellows of Harvard College"
- "THE NEW YORK AND PRESBYTERIAN HOSPITAL"
- "ALLINA HEALTH SYSTEM"
- ⋮
- "FAMILY HEALTH SERVICES CORPORATION"
- "Montgomery General Hospital Inc"
- "COMMUNITY YOUTH CENTER OF SAN FRANCISCO"
- "SPEECH&LANGUAGE DEVELOPMENT CENTER"
- "Tennyson Center for Children at"
- "NUEVA SCHOOL"
- "COLUMBUS REGIONAL SENIOR LIVING INC"
- "La Paz Regional Hospital"
- "MENTAL HEALTH ASSOCIATION OF"
-```
-
-
-
-
 I noticed that while looking for characteristics of the nonoprofits in the clusters, group1 contains several hospitals, medical groups, and care homes, group2 is fairly similar but a seeming mix of medical and educational groups, and
 group3 contains many universities. It would make sense that group1 and group3 might be more polarized with group2 containing a "mix" or organizations (perhaps something in the writing of the mission statements makes this the "middle" group). I also noticed that several of the nonprofits in group2 have the word 'trustee' in their names, which most likely contain similar words in their mission statements.
 
@@ -656,46 +389,3 @@ irs990extract[employee_top10k][group3]
 [irs990extract[employee_top10k][group2][i]["name"] for i in 1:sum(group2)]
 [irs990extract[employee_top10k][group3][i]["name"] for i in 1:sum(group3)]
 ```
-
-```
-["and", "to", "the", "of", "provid", "for", "in", "educ", "a", "communiti",
- "servic", "is", "promot", "organ", "support", "none", "with", "see", "hous
-", "through"]["provid", "educ", "communiti", "servic", "promot", "organ", "
-support", "none", "with", "see", "hous", "through", "member", "program", "d
-evelop", "care", "schedul", "mission", "health", "school"]["see", "o", "sch
-edul", "and", "to", "the", "of", "provid", "servic", "in", "communiti", "he
-alth", "a", "care", "is", "for", "with", "our", "educ", "by", "qualiti", "w
-e", "through", "peopl", "live", "their", "mission", "disabl", "serv", "impr
-ov", "famili", "individu", "that", "support", "all", "life", "program", "as
-", "promot", "person", "children", "need", "it", "organ", "healthcar", "dev
-elop", "member", "are", "student", "social", "statement", "attach", "develo
-pment", "an", "other", "medic", "center", "adult", "hospit", "excel", "oppo
-rtun", "commit", "home", "heal", "be", "patient", "independ", "mental", "in
-c", "school", "work", "help", "compassion", "resid", "who", "oper", "those"
-, "train", "wellb", "employ", "empow", "enhanc", "dedic", "1", "environ", "
-counti", "valu", "creat", "build", "high", "achiev", "well", "assist", "uni
-vers", "christian", "inspir", "learn", "art", "system", "comprehens"]460-el
-ement Vector{String}:
- "UPMC GROUP"
- "Cornell University"
- "University of Southern California"
- "DUKE UNIVERSITY"
- "Yale University"
- "UNIVERSITY HOSPITALS HEALTH SYSTEM INC"
- "Trustees of Boston University"
- "EMORY UNIVERSITY"
- "DUKE UNIVERSITY HEALTH SYSTEM INC"
- "EMORY GROUP RETURN"
- ⋮
- "Frontier Community Services"
- "international cinematographers guild"
- "LINCOLNHEALTH COVE'S EDGE"
- "American Institute of Physics Inc"
- "THE HOMESTEAD AT ROCHESTER INC"
- "MARYHAVEN SCHOOL"
- "DAVID C COOK"
- "UNCOMMON SCHOOLS INC"
- "ATHENS REGIONAL SPECIALTY SERVICES"
-```
-
-
